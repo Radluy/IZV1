@@ -1,4 +1,33 @@
-import requests, re, os
+import requests, re, os, zipfile, csv
+import numpy as np
+from io import TextIOWrapper
+REGIONS = {
+    "PHA": "00",
+    "STC": "01",
+    "JHC": "02",
+    "PLK": "03",
+    "KVK": "19",
+    "ULK": "04",
+    "LBK": "18",
+    "HKK": "05",
+    "PAK": "17",
+    "OLK": "14",
+    "MSK": "07",
+    "JHM": "06",
+    "ZLK": "15",
+    "VYS": "16",
+}
+
+#(tuple:(skratka, nazov), konverzia/typ)
+CSV_HEADERS = (
+    ("IDENTIFIKAČNÍ ČÍSLO", "string"),
+    ("DRUH POZEMNÍ KOMUNIKACE", "int"),
+    ("ČÍSLO POZEMNÍ KOMUNIKACE", "int"),
+    ("ČASOVÉ ÚDAJE O DOPRAVNÍ NEHODĚ(den, měsíc, rok)", "datetime?")
+    ("WEEKDAY", "int")
+
+
+)
 
 class DataDownloader:
     
@@ -32,7 +61,7 @@ class DataDownloader:
         ziplist = re.findall("data/[a-zA-Z0-9\-]*\.zip", str(html.content))
         for file_name in ziplist:
             response = requests.get(self.url+file_name, headers=headers, cookies=cookies)
-            with open("data/{}".format(file_name[5:]), 'wb') as fd:
+            with open("{}/".format(self.folder)+file_name[5:], 'wb') as fd:
                 for chunk in response.iter_content():
                     fd.write(chunk)
         
@@ -41,11 +70,24 @@ class DataDownloader:
     je pro daný region specifikovaný tříznakovým kódem (viz tabulka níže) ​ vždy
     vyparsuje do následujícího formátu tuple(list[str], list[np.ndarray])"""
     def parse_region_data(self, region):
-        pass
+        if (not os.path.lexists("{}/datagis2016.zip".format(self.folder))):
+            self.download_data()
+        zf = zipfile.ZipFile("{}/datagis2016.zip".format(self.folder))
+        #fd = zf.open("{}.csv".format(REGIONS[region]))
+        names = list()
+        #for key in CSV_HEADERS:
+        #    names.append(CSV_HEADERS[key][0])
+        #print(CSV_HEADERS[1])
+        csvfile = zf.open('{}.csv'.format(REGIONS[region]), "r")
+        reader = csv.reader(TextIOWrapper(csvfile, encoding='unicode_escape'), delimiter=';', quotechar='"')
+        for row in reader:
+            print(row)
+
 
     
     def get_list(self, regions=None):
         pass
 
 dd = DataDownloader()
-dd.download_data()
+#dd.download_data()
+dd.parse_region_data("KVK")
