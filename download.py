@@ -23,9 +23,50 @@ CSV_HEADERS = (
     ("IDENTIFIKAČNÍ ČÍSLO", "string"),
     ("DRUH POZEMNÍ KOMUNIKACE", "int"),
     ("ČÍSLO POZEMNÍ KOMUNIKACE", "int"),
-    ("ČASOVÉ ÚDAJE O DOPRAVNÍ NEHODĚ(den, měsíc, rok)", "datetime?")
-    ("WEEKDAY", "int")
-
+    ("ČASOVÉ ÚDAJE O DOPRAVNÍ NEHODĚ(den, měsíc, rok)", "datetime?"),
+    ("WEEKDAY", "int"),
+    ("ČAS", "datetime"),
+    ("DRUH NEHODY", "int"),
+    ("DRUH SRÁŽKY JEDOUCÍCH VOZIDEL", "int"),
+    ("DRUH PEVNÉ PŘEKÁŽKY", "int"),
+    ("CHARAKTER NEHODY", "int"),
+    ("ZAVINĚNÍ NEHODY", "int"),
+    ("ALKOHOL U VINÍKA NEHODY PŘÍTOMEN", "int"),
+    ("HLAVNÍ PŘÍČINY NEHODY", "int"),
+    ("USMRCENO OSOB", "int"),
+    ("těžce zraněno osob", "int"),
+    ("lehce zraněno osob", "int"),
+    ("CELKOVÁ HMOTNÁ ŠKODA", "float"),
+    ("DRUH POVRCHU VOZOVKY", "int"),
+    ("STAV POVRCHU VOZOVKY V DOBĚ NEHODY", "int"),
+    ("STAV KOMUNIKACE", "int"),
+    ("POVĚTRNOSTNÍ PODMÍNKY V DOBĚ NEHODY", "int"),
+    ("VIDITELNOST", "int"),
+    ("ROZHLEDOVÉ POMĚRY", "int"),
+    ("DĚLENÍ KOMUNIKACE", "int"),
+    ("SITUOVÁNÍ NEHODY NA KOMUNIKACI", "int"),
+    ("ŘÍZENÍ PROVOZU V DOBĚ NEHODY", "int"),
+    ("MÍSTNÍ ÚPRAVA PŘEDNOSTI V JÍZDĚ", "int"),
+    ("SPECIFICKÁ MÍSTA A OBJEKTY V MÍSTĚ NEHODY", "int"),
+    ("SMĚROVÉ POMĚRY", "int"),
+    ("POČET ZÚČASTNĚNÝCH VOZIDEL", "int"),
+    ("MÍSTO DOPRAVNÍ NEHODY", "int"),
+    ("DRUH KŘIŽUJÍCÍ KOMUNIKACE", "int"),
+    ("DRUH VOZIDLA", "int"),
+    ("VÝROBNÍ ZNAČKA MOTOROVÉHO VOZIDLA", "int"),
+    ("ROK VÝROBY VOZIDLA", "int"),
+    ("CHARAKTERISTIKA VOZIDLA ", "int"),
+    ("SMYK", "bool"),
+    ("VOZIDLO PO NEHODĚ", "int"),
+    ("ÚNIK PROVOZNÍCH, PŘEPRAVOVANÝCH HMOT", "int"),
+    ("ZPŮSOB VYPROŠTĚNÍ OSOB Z VOZIDLA", "int"),
+    ("SMĚR JÍZDY NEBO POSTAVENÍ VOZIDLA", "int"),
+    ("ŠKODA NA VOZIDLE", "int"),
+    ("KATEGORIE ŘIDIČE", "int"),
+    ("STAV ŘIDIČE", "int"),
+    ("VNĚJŠÍ OVLIVNĚNÍ ŘIDIČE", "int"),
+    ("", "int"),
+    ("", "int"),
 
 )
 
@@ -75,13 +116,12 @@ class DataDownloader:
         zf = zipfile.ZipFile("{}/datagis2016.zip".format(self.folder))
         #fd = zf.open("{}.csv".format(REGIONS[region]))
         names = list()
-        #for key in CSV_HEADERS:
-        #    names.append(CSV_HEADERS[key][0])
-        #print(CSV_HEADERS[1])
+        for tup in CSV_HEADERS:
+            names.append(tup[0])
         csvfile = zf.open('{}.csv'.format(REGIONS[region]), "r")
         reader = csv.reader(TextIOWrapper(csvfile, encoding='unicode_escape'), delimiter=';', quotechar='"')
-        for row in reader:
-            print(row)
+        #for row in reader:
+        #    print(row)
 
 
     
