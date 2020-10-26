@@ -18,55 +18,73 @@ REGIONS = {
     "VYS": "16",
 }
 
-#(tuple:(skratka, nazov), konverzia/typ)
+#(tuple:(nazov, konverzia/typ))
 CSV_HEADERS = (
-    ("IDENTIFIKAČNÍ ČÍSLO", "string"),
-    ("DRUH POZEMNÍ KOMUNIKACE", "int"),
-    ("ČÍSLO POZEMNÍ KOMUNIKACE", "int"),
-    ("ČASOVÉ ÚDAJE O DOPRAVNÍ NEHODĚ(den, měsíc, rok)", "datetime?"),
-    ("WEEKDAY", "int"),
-    ("ČAS", "datetime"),
-    ("DRUH NEHODY", "int"),
-    ("DRUH SRÁŽKY JEDOUCÍCH VOZIDEL", "int"),
-    ("DRUH PEVNÉ PŘEKÁŽKY", "int"),
-    ("CHARAKTER NEHODY", "int"),
-    ("ZAVINĚNÍ NEHODY", "int"),
-    ("ALKOHOL U VINÍKA NEHODY PŘÍTOMEN", "int"),
-    ("HLAVNÍ PŘÍČINY NEHODY", "int"),
-    ("USMRCENO OSOB", "int"),
-    ("těžce zraněno osob", "int"),
-    ("lehce zraněno osob", "int"),
-    ("CELKOVÁ HMOTNÁ ŠKODA", "float"),
-    ("DRUH POVRCHU VOZOVKY", "int"),
-    ("STAV POVRCHU VOZOVKY V DOBĚ NEHODY", "int"),
-    ("STAV KOMUNIKACE", "int"),
-    ("POVĚTRNOSTNÍ PODMÍNKY V DOBĚ NEHODY", "int"),
-    ("VIDITELNOST", "int"),
-    ("ROZHLEDOVÉ POMĚRY", "int"),
-    ("DĚLENÍ KOMUNIKACE", "int"),
-    ("SITUOVÁNÍ NEHODY NA KOMUNIKACI", "int"),
-    ("ŘÍZENÍ PROVOZU V DOBĚ NEHODY", "int"),
-    ("MÍSTNÍ ÚPRAVA PŘEDNOSTI V JÍZDĚ", "int"),
-    ("SPECIFICKÁ MÍSTA A OBJEKTY V MÍSTĚ NEHODY", "int"),
-    ("SMĚROVÉ POMĚRY", "int"),
-    ("POČET ZÚČASTNĚNÝCH VOZIDEL", "int"),
-    ("MÍSTO DOPRAVNÍ NEHODY", "int"),
-    ("DRUH KŘIŽUJÍCÍ KOMUNIKACE", "int"),
-    ("DRUH VOZIDLA", "int"),
-    ("VÝROBNÍ ZNAČKA MOTOROVÉHO VOZIDLA", "int"),
-    ("ROK VÝROBY VOZIDLA", "int"),
-    ("CHARAKTERISTIKA VOZIDLA ", "int"),
-    ("SMYK", "bool"),
-    ("VOZIDLO PO NEHODĚ", "int"),
-    ("ÚNIK PROVOZNÍCH, PŘEPRAVOVANÝCH HMOT", "int"),
-    ("ZPŮSOB VYPROŠTĚNÍ OSOB Z VOZIDLA", "int"),
-    ("SMĚR JÍZDY NEBO POSTAVENÍ VOZIDLA", "int"),
-    ("ŠKODA NA VOZIDLE", "int"),
-    ("KATEGORIE ŘIDIČE", "int"),
-    ("STAV ŘIDIČE", "int"),
-    ("VNĚJŠÍ OVLIVNĚNÍ ŘIDIČE", "int"),
-    ("", "int"),
-    ("", "int"),
+    ("IDENTIFIKAČNÍ ČÍSLO", "S"),
+    ("DRUH POZEMNÍ KOMUNIKACE", "i"),
+    ("ČÍSLO POZEMNÍ KOMUNIKACE", "i"),
+    ("ČASOVÉ ÚDAJE O DOPRAVNÍ NEHODĚ(den, měsíc, rok)", "M"),
+    ("WEEKDAY", "i"),
+    ("ČAS", "M"),
+    ("DRUH NEHODY", "i"),
+    ("DRUH SRÁŽKY JEDOUCÍCH VOZIDEL", "i"),
+    ("DRUH PEVNÉ PŘEKÁŽKY", "i"),
+    ("CHARAKTER NEHODY", "i"),
+    ("ZAVINĚNÍ NEHODY", "i"),
+    ("ALKOHOL U VINÍKA NEHODY PŘÍTOMEN", "i"),
+    ("HLAVNÍ PŘÍČINY NEHODY", "i"),
+    ("USMRCENO OSOB", "i"),
+    ("těžce zraněno osob", "i"),
+    ("lehce zraněno osob", "i"),
+    ("CELKOVÁ HMOTNÁ ŠKODA", "f"),
+    ("DRUH POVRCHU VOZOVKY", "i"),
+    ("STAV POVRCHU VOZOVKY V DOBĚ NEHODY", "i"),
+    ("STAV KOMUNIKACE", "i"),
+    ("POVĚTRNOSTNÍ PODMÍNKY V DOBĚ NEHODY", "i"),
+    ("VIDITELNOST", "i"),
+    ("ROZHLEDOVÉ POMĚRY", "i"),
+    ("DĚLENÍ KOMUNIKACE", "i"),
+    ("SITUOVÁNÍ NEHODY NA KOMUNIKACI", "i"),
+    ("ŘÍZENÍ PROVOZU V DOBĚ NEHODY", "i"),
+    ("MÍSTNÍ ÚPRAVA PŘEDNOSTI V JÍZDĚ", "i"),
+    ("SPECIFICKÁ MÍSTA A OBJEKTY V MÍSTĚ NEHODY", "i"),
+    ("SMĚROVÉ POMĚRY", "i"),
+    ("POČET ZÚČASTNĚNÝCH VOZIDEL", "i"),
+    ("MÍSTO DOPRAVNÍ NEHODY", "i"),
+    ("DRUH KŘIŽUJÍCÍ KOMUNIKACE", "i"),
+    ("DRUH VOZIDLA", "i"),
+    ("VÝROBNÍ ZNAČKA MOTOROVÉHO VOZIDLA", "i"),
+    ("ROK VÝROBY VOZIDLA", "i"),
+    ("CHARAKTERISTIKA VOZIDLA ", "i"),
+    ("SMYK", "i"),
+    ("VOZIDLO PO NEHODĚ", "i"),
+    ("ÚNIK PROVOZNÍCH, PŘEPRAVOVANÝCH HMOT", "i"),
+    ("ZPŮSOB VYPROŠTĚNÍ OSOB Z VOZIDLA", "i"),
+    ("SMĚR JÍZDY NEBO POSTAVENÍ VOZIDLA", "i"),
+    ("ŠKODA NA VOZIDLE", "i"),
+    ("KATEGORIE ŘIDIČE", "i"),
+    ("STAV ŘIDIČE", "i"),
+    ("VNĚJŠÍ OVLIVNĚNÍ ŘIDIČE", "i"),
+    ("a", "S"),
+    ("b", "S"),
+    ("d", "S"),#float ciarka to bodka
+    ("e", "S"),#float ciarka to bodka
+    ("f", "S"),
+    ("g", "S"),
+    ("h", "S"),
+    ("i", "S"),
+    ("j", "S"),
+    ("k", "S"),
+    ("l", "S"),
+    ("n", "S"),
+    ("o", "S"),
+    ("p", "S"),
+    ("q", "S"),
+    ("r", "S"),
+    ("s", "S"),
+    ("t", "S"),
+    ("LOKALITA NEHODY", "i"),
+    ("REGION", "S")
 
 )
 
@@ -111,17 +129,45 @@ class DataDownloader:
     je pro daný region specifikovaný tříznakovým kódem (viz tabulka níže) ​ vždy
     vyparsuje do následujícího formátu tuple(list[str], list[np.ndarray])"""
     def parse_region_data(self, region):
+        #initialize data structures
+        names = list()
+        data = list()
+        tmp_list = list()
+        for tup in CSV_HEADERS:
+            names.append(tup[0])
+            tmp_list.append(list())
+
+        #open csv file for reading
         if (not os.path.lexists("{}/datagis2016.zip".format(self.folder))):
             self.download_data()
         zf = zipfile.ZipFile("{}/datagis2016.zip".format(self.folder))
-        #fd = zf.open("{}.csv".format(REGIONS[region]))
-        names = list()
-        for tup in CSV_HEADERS:
-            names.append(tup[0])
         csvfile = zf.open('{}.csv'.format(REGIONS[region]), "r")
         reader = csv.reader(TextIOWrapper(csvfile, encoding='unicode_escape'), delimiter=';', quotechar='"')
-        #for row in reader:
-        #    print(row)
+
+        #parse csv strings
+        for row in reader:
+            i = 0
+            string_list = list(row)
+            for obj in string_list:
+                if (obj == "" or obj == "XX"):
+                    obj = "-1"
+                tmp_list[i].append(obj.encode("UTF-8"))
+                i += 1
+
+        #close open files
+        csvfile.close()
+        zipfile.ZipFile.close(zf)
+
+        #convert to numpy array
+        i = 0
+        for particle in tmp_list: 
+            data.append(np.array(particle, dtype=CSV_HEADERS[i][1]))
+            i += 1
+        print("finished!")
+        result = (names, data)
+        return result
+
+
 
 
     
