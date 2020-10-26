@@ -85,8 +85,9 @@ CSV_HEADERS = (
     ("t", "S"),
     ("LOKALITA NEHODY", "i"),
     ("REGION", "S")
-
 )
+
+files = ("datagis2016.zip", "datagis-rok-2017.zip", "datagis-rok-2018.zip", "datagis-rok-2019.zip", "datagis-09-2020.zip")
 
 class DataDownloader:
     
@@ -100,6 +101,10 @@ class DataDownloader:
         if (not os.path.exists(self.folder)):
             os.mkdir(self.folder)
         self.cache_filename = cache_filename
+        self.data_attr = {}
+        reg_keys = REGIONS.keys()
+        for region in reg_keys:
+            self.data_attr[region] = None
 
     """funkce stáhne do datové složky ​ folder​ všechny soubory s daty z adresy ​ url​ ."""
     def download_data(self):
@@ -124,7 +129,6 @@ class DataDownloader:
                 for chunk in response.iter_content():
                     fd.write(chunk)
         
-
     """pokud nejsou data pro daný kraj stažená, stáhne je do datové složky ​ folder​ . Poté
     je pro daný region specifikovaný tříznakovým kódem (viz tabulka níže) ​ vždy
     vyparsuje do následujícího formátu tuple(list[str], list[np.ndarray])"""
@@ -138,42 +142,56 @@ class DataDownloader:
             tmp_list.append(list())
 
         #open csv file for reading
-        if (not os.path.lexists("{}/datagis2016.zip".format(self.folder))):
-            self.download_data()
-        zf = zipfile.ZipFile("{}/datagis2016.zip".format(self.folder))
-        csvfile = zf.open('{}.csv'.format(REGIONS[region]), "r")
-        reader = csv.reader(TextIOWrapper(csvfile, encoding='unicode_escape'), delimiter=';', quotechar='"')
+        for file in files:
+            if (not os.path.lexists(os.path.join(self.folder, file))):
+                self.download_data()
+            zf = zipfile.ZipFile(os.path.join(self.folder, file))
+            csvfile = zf.open('{}.csv'.format(REGIONS[region]), "r")
+            reader = csv.reader(TextIOWrapper(csvfile, encoding='unicode_escape'), delimiter=';', quotechar='"')
 
-        #parse csv strings
-        for row in reader:
-            i = 0
-            string_list = list(row)
-            for obj in string_list:
-                if (obj == "" or obj == "XX"):
-                    obj = "-1"
-                tmp_list[i].append(obj.encode("UTF-8"))
-                i += 1
+            #parse csv strings
+            for row in reader:
+                i = 0
+                string_list = list(row)
+                for obj in string_list:
+                    if (obj == "" or obj == "XX"):
+                        obj = "-1"
+                    tmp_list[i].append(obj.encode("UTF-8"))
+                    i += 1
 
-        #close open files
-        csvfile.close()
-        zipfile.ZipFile.close(zf)
+            #close open files
+            csvfile.close()
+            zipfile.ZipFile.close(zf)
 
         #convert to numpy array
         i = 0
         for particle in tmp_list: 
             data.append(np.array(particle, dtype=CSV_HEADERS[i][1]))
             i += 1
-        print("finished!")
+
+        #final tuple
         result = (names, data)
         return result
-
-
-
-
     
     def get_list(self, regions=None):
-        pass
+        if (regions == None):
+            regions = REGIONS.keys()
+
+        for region in regions:
+            if (self.data_attr[region] != None):
+                pass
+                #return/append from data_attr
+            else:
+                pass
+                #open cache
+                #if file doesnt exist:
+                    #parse_region_data
+                    #save to cache
+                #else:
+                    #load from cache
+            
+        
 
 dd = DataDownloader()
 #dd.download_data()
-dd.parse_region_data("KVK")
+#dd.parse_region_data("KVK")
