@@ -193,15 +193,16 @@ class DataDownloader:
         iter_list = None
 
         for region in regions:
-            if (self.data_attr[region] != None):  #already loaded in attribute
+            #already loaded in attribute
+            if (self.data_attr[region] != None):  
                 iter_list = self.data_attr[region][1]
-
-            elif (os.path.exists(os.path.join(self.folder, self.cache_filename.format(region)))): #load from cache
+            #load from cache
+            elif (os.path.exists(os.path.join(self.folder, self.cache_filename.format(region)))): 
                 fd = gzip.open(os.path.join(self.folder, self.cache_filename.format(region)), "r")
                 iter_list = pickle.load(fd)
                 self.data_attr[region] = iter_list
-
-            else: #parse from csv file
+            #parse from csv file
+            else: 
                 iter_list = self.parse_region_data(region)
                 fd = gzip.open(os.path.join(self.folder, self.cache_filename.format(region)), "w")
                 pickle.dump(iter_list, fd)
@@ -213,11 +214,14 @@ class DataDownloader:
                 data[i] = np.concatenate((data[i], arr))
                 i += 1
         print("FINISHED!")
+        return result
 
             
         
-
-dd = DataDownloader()
-#dd.download_data()
-#dd.parse_region_data("KVK")
-dd.get_list(("STC", "HKK", "JHM"))
+#EXAMPLE
+if (__name__ == "__main__"):
+    dd = DataDownloader()
+    res = dd.get_list(("STC", "HKK", "JHM"))
+    print(", ".join(res[0]))
+    print("number of accidents= {}".format(res[1][1].size))
+    print("Regions= Stredocesky, Kralovehradecky, Jihomoravsky")
