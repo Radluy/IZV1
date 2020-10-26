@@ -1,4 +1,4 @@
-import requests, re, os, zipfile, csv
+import requests, re, os, zipfile, csv, pickle, gzip
 import numpy as np
 from io import TextIOWrapper
 REGIONS = {
@@ -25,7 +25,7 @@ CSV_HEADERS = (
     ("ČÍSLO POZEMNÍ KOMUNIKACE", "i"),
     ("ČASOVÉ ÚDAJE O DOPRAVNÍ NEHODĚ(den, měsíc, rok)", "M"),
     ("WEEKDAY", "i"),
-    ("ČAS", "M"),
+    ("ČAS", "S"),
     ("DRUH NEHODY", "i"),
     ("DRUH SRÁŽKY JEDOUCÍCH VOZIDEL", "i"),
     ("DRUH PEVNÉ PŘEKÁŽKY", "i"),
@@ -158,6 +158,7 @@ class DataDownloader:
                         obj = "-1"
                     tmp_list[i].append(obj.encode("UTF-8"))
                     i += 1
+                tmp_list[i].append(region)
 
             #close open files
             csvfile.close()
@@ -173,25 +174,50 @@ class DataDownloader:
         result = (names, data)
         return result
     
+    """Vrací zpracovaná data pro vybrané kraje (regiony). Argument ​ regions ​ specifikuje
+    seznam (list) požadovaných krajů jejich třípísmennými kódy. Pokud seznam není
+    uveden (je použito None), zpracují se všechny kraje včetně Prahy."""
     def get_list(self, regions=None):
         if (regions == None):
             regions = REGIONS.keys()
 
+        #init
+        names = list()
+        data = list()
+        i = 0
+        for tup in CSV_HEADERS:
+            names.append(tup[0])
+            data.append(np.empty(0, dtype=CSV_HEADERS[i][1]))
+            i += 1
+        result = (names, data)
+        iter_list = None
+
         for region in regions:
-            if (self.data_attr[region] != None):
-                pass
-                #return/append from data_attr
-            else:
-                pass
-                #open cache
-                #if file doesnt exist:
-                    #parse_region_data
-                    #save to cache
-                #else:
-                    #load from cache
+            if (self.data_attr[region] != None):  #already loaded in attribute
+                iter_list = self.data_attr[region][1]
+
+            elif (os.path.exists(os.path.join(self.folder, self.cache_filename.format(region)))): #load from cache
+                fd = gzip.open(os.path.join(self.folder, self.cache_filename.format(region)), "r")
+                iter_list = pickle.load(fd)
+                self.data_attr[region] = iter_list
+
+            else: #parse from csv file
+                iter_list = self.parse_region_data(region)
+                fd = gzip.open(os.path.join(self.folder, self.cache_filename.format(region)), "w")
+                pickle.dump(iter_list, fd)
+                fd.close()
+                self.data_attr[region] = iter_list
+
+            i = 0
+            for arr in iter_list[1]:
+                data[i] = np.concatenate((data[i], arr))
+                i += 1
+        print("FINISHED!")
+
             
         
 
 dd = DataDownloader()
 #dd.download_data()
 #dd.parse_region_data("KVK")
+dd.get_list(("STC", "HKK", "JHM"))
