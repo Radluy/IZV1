@@ -5,9 +5,8 @@ import datetime as dm
 import os, argparse
 #tuple(list[str], list[np.ndarray])
 
-def plot_stat(data_source, fig_location=None, show_figure=False):
 
-    #fig = plt.figure(figsize=(6, 4))
+def plot_stat(data_source, fig_location=None, show_figure=False):
 
     #get indices of region changes in array
     reg_arr = data_source[1][data_source[1].__len__() - 1]
@@ -40,22 +39,27 @@ def plot_stat(data_source, fig_location=None, show_figure=False):
             years_count["2018"].append(np.count_nonzero(years == "2018"))
             years_count["2019"].append(np.count_nonzero(years == "2019"))
             years_count["2020"].append(np.count_nonzero(years == "2020"))
-
     #plot
     figure, axes = plt.subplots(nrows=len(years_count.keys()), ncols=1)
     for row, key in zip(axes, years_count.keys()):
-        row.bar(regions, years_count[key], color='C3')
+        row.bar(regions, years_count[key], color='C1', zorder=3)
         row.set_title(key)
         #row.set_xlabel("Regions")
         #row.set_ylabel("Accidents")
         row.spines['top'].set_visible(False)
         row.spines['right'].set_visible(False)
-        row.spines['bottom'].set_position('zero')
-        row.margins(0.05)
-        row.set
-    #plt.setp(row.get_xticklabels()[5:8], color="white")
-    #plt.setp(row.get_xticklines()[10:15], markeredgecolor="white")
-    plt.tight_layout()
+        row.grid(axis='y', zorder=0)
+        row.yaxis.set_ticks(np.arange(0, max(years_count[key]), 5000))
+        #find order
+        temp = sorted(years_count[key], reverse=True)
+        #print values above bars
+        for p in row.patches:
+            row.annotate(temp.index(p.get_height())+1, 
+                    (p.get_x() + p.get_width() / 2., p.get_height()), 
+                    ha = 'center', va = 'center', 
+                    xytext = (0, 9), 
+                    textcoords = 'offset points')
+    plt.tight_layout(pad=-0.5)
 
     if (fig_location):
         if (not os.path.exists(os.path.dirname(fig_location))):
@@ -74,5 +78,5 @@ if (__name__ == "__main__"):
     parser.add_argument("--fig_location", dest="fig_location", default=None)
     args = parser.parse_args()
 
-    data_source = download.DataDownloader().get_list(["STC", "HKK", "JHM"])
+    data_source = download.DataDownloader().get_list()
     plot_stat(data_source, args.fig_location, args.show_figure)
