@@ -154,8 +154,10 @@ class DataDownloader:
                 i = 0
                 string_list = list(row)
                 for obj in string_list:
-                    if (obj == "" or obj == "XX"):
+                    if (obj == "" or obj == "XX" or obj == "D:" or obj == "E:" or obj == "F:" or obj == "G:"):
                         obj = "-1"
+                    if (CSV_HEADERS[i][1] == 'f'):
+                        obj = str(obj).replace(',', '.')
                     tmp_list[i].append(obj.encode("UTF-8"))
                     i += 1
                 tmp_list[i].append(region)
