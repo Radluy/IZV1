@@ -1,6 +1,7 @@
 import requests, re, os, zipfile, csv, pickle, gzip
 import numpy as np
 from io import TextIOWrapper
+#region abbrevations and their corresponding numbers
 REGIONS = {
     "PHA": "00",
     "STC": "01",
@@ -18,53 +19,53 @@ REGIONS = {
     "VYS": "16",
 }
 
-#(tuple:(nazov, konverzia/typ))
+#list(tuple:(column name, numpy datatype of values))
 CSV_HEADERS = (
     ("IDENTIFIKAČNÍ ČÍSLO", "S"),
-    ("DRUH POZEMNÍ KOMUNIKACE", "i"),
-    ("ČÍSLO POZEMNÍ KOMUNIKACE", "i"),
+    ("DRUH POZEMNÍ KOMUNIKACE", "i2"),
+    ("ČÍSLO POZEMNÍ KOMUNIKACE", "i4"),
     ("ČASOVÉ ÚDAJE O DOPRAVNÍ NEHODĚ(den, měsíc, rok)", "M"),
-    ("WEEKDAY", "i"),
+    ("WEEKDAY", "i2"),
     ("ČAS", "S"),
-    ("DRUH NEHODY", "i"),
-    ("DRUH SRÁŽKY JEDOUCÍCH VOZIDEL", "i"),
-    ("DRUH PEVNÉ PŘEKÁŽKY", "i"),
-    ("CHARAKTER NEHODY", "i"),
-    ("ZAVINĚNÍ NEHODY", "i"),
-    ("ALKOHOL U VINÍKA NEHODY PŘÍTOMEN", "i"),
-    ("HLAVNÍ PŘÍČINY NEHODY", "i"),
-    ("USMRCENO OSOB", "i"),
-    ("těžce zraněno osob", "i"),
-    ("lehce zraněno osob", "i"),
+    ("DRUH NEHODY", "i2"),
+    ("DRUH SRÁŽKY JEDOUCÍCH VOZIDEL", "i2"),
+    ("DRUH PEVNÉ PŘEKÁŽKY", "i2"),
+    ("CHARAKTER NEHODY", "i4"),
+    ("ZAVINĚNÍ NEHODY", "i2"),
+    ("ALKOHOL U VINÍKA NEHODY PŘÍTOMEN", "i2"),
+    ("HLAVNÍ PŘÍČINY NEHODY", "i4"),
+    ("USMRCENO OSOB", "i2"),
+    ("těžce zraněno osob", "i2"),
+    ("lehce zraněno osob", "i2"),
     ("CELKOVÁ HMOTNÁ ŠKODA", "f"),
-    ("DRUH POVRCHU VOZOVKY", "i"),
-    ("STAV POVRCHU VOZOVKY V DOBĚ NEHODY", "i"),
-    ("STAV KOMUNIKACE", "i"),
-    ("POVĚTRNOSTNÍ PODMÍNKY V DOBĚ NEHODY", "i"),
-    ("VIDITELNOST", "i"),
-    ("ROZHLEDOVÉ POMĚRY", "i"),
-    ("DĚLENÍ KOMUNIKACE", "i"),
-    ("SITUOVÁNÍ NEHODY NA KOMUNIKACI", "i"),
-    ("ŘÍZENÍ PROVOZU V DOBĚ NEHODY", "i"),
-    ("MÍSTNÍ ÚPRAVA PŘEDNOSTI V JÍZDĚ", "i"),
-    ("SPECIFICKÁ MÍSTA A OBJEKTY V MÍSTĚ NEHODY", "i"),
-    ("SMĚROVÉ POMĚRY", "i"),
-    ("POČET ZÚČASTNĚNÝCH VOZIDEL", "i"),
-    ("MÍSTO DOPRAVNÍ NEHODY", "i"),
-    ("DRUH KŘIŽUJÍCÍ KOMUNIKACE", "i"),
+    ("DRUH POVRCHU VOZOVKY", "i2"),
+    ("STAV POVRCHU VOZOVKY V DOBĚ NEHODY", "i2"),
+    ("STAV KOMUNIKACE", "i2"),
+    ("POVĚTRNOSTNÍ PODMÍNKY V DOBĚ NEHODY", "i2"),
+    ("VIDITELNOST", "i2"),
+    ("ROZHLEDOVÉ POMĚRY", "i2"),
+    ("DĚLENÍ KOMUNIKACE", "i4"),
+    ("SITUOVÁNÍ NEHODY NA KOMUNIKACI", "i4"),
+    ("ŘÍZENÍ PROVOZU V DOBĚ NEHODY", "i2"),
+    ("MÍSTNÍ ÚPRAVA PŘEDNOSTI V JÍZDĚ", "i2"),
+    ("SPECIFICKÁ MÍSTA A OBJEKTY V MÍSTĚ NEHODY", "i4"),
+    ("SMĚROVÉ POMĚRY", "i4"),
+    ("POČET ZÚČASTNĚNÝCH VOZIDEL", "i2"),
+    ("MÍSTO DOPRAVNÍ NEHODY", "i4"),
+    ("DRUH KŘIŽUJÍCÍ KOMUNIKACE", "i4"),
     ("DRUH VOZIDLA", "i"),
     ("VÝROBNÍ ZNAČKA MOTOROVÉHO VOZIDLA", "i"),
     ("ROK VÝROBY VOZIDLA", "i"),
-    ("CHARAKTERISTIKA VOZIDLA ", "i"),
-    ("SMYK", "i"),
-    ("VOZIDLO PO NEHODĚ", "i"),
-    ("ÚNIK PROVOZNÍCH, PŘEPRAVOVANÝCH HMOT", "i"),
-    ("ZPŮSOB VYPROŠTĚNÍ OSOB Z VOZIDLA", "i"),
-    ("SMĚR JÍZDY NEBO POSTAVENÍ VOZIDLA", "i"),
+    ("CHARAKTERISTIKA VOZIDLA ", "i4"),
+    ("SMYK", "i4"),
+    ("VOZIDLO PO NEHODĚ", "i4"),
+    ("ÚNIK PROVOZNÍCH, PŘEPRAVOVANÝCH HMOT", "i4"),
+    ("ZPŮSOB VYPROŠTĚNÍ OSOB Z VOZIDLA", "i2"),
+    ("SMĚR JÍZDY NEBO POSTAVENÍ VOZIDLA", "i2"),
     ("ŠKODA NA VOZIDLE", "i"),
-    ("KATEGORIE ŘIDIČE", "i"),
-    ("STAV ŘIDIČE", "i"),
-    ("VNĚJŠÍ OVLIVNĚNÍ ŘIDIČE", "i"),
+    ("KATEGORIE ŘIDIČE", "i2"),
+    ("STAV ŘIDIČE", "i2"),
+    ("VNĚJŠÍ OVLIVNĚNÍ ŘIDIČE", "i2"),
     ("a", "S"),
     ("b", "S"),
     ("d", "S"),#float ciarka to bodka
@@ -87,26 +88,27 @@ CSV_HEADERS = (
     ("REGION", "S")
 )
 
+#file names 
 files = ("datagis2016.zip", "datagis-rok-2017.zip", "datagis-rok-2018.zip", "datagis-rok-2019.zip", "datagis-09-2020.zip")
 
+#class responsible for downloading and parsing accidents data
 class DataDownloader:
-    
-    """@param folder říká, kam se mají dočasná data ukládat. Tato složka nemusí na začátku existovat!
-    @param cache_filename jméno souboru ve specifikované složce, které říká, kam se soubor s již zpracovanými daty z funkce ​ get_list​ bude ukládat a odkud
-    se budou data brát pro další zpracování a nebylo nutné neustále stahovat data přímo z webu. Složené závorky (formátovací řetězec) bude nahrazený
-    tříznakovým kódem (viz tabulka níže) příslušného kraje. Pro jednoduchost podporujte pouze formát “pickle” s kompresí gzip."""
+    """Initializes class instance
+    @param url url of website containing datafiles
+    @param folder folder where data files and cache files will be stored
+    @param cache_filename name format for cache files"""
     def __init__(self, url="https://ehw.fit.vutbr.cz/izv/", folder="data", cache_filename="data_{}.pk1.gz"):
         self.url = url
         self.folder = folder
         if (not os.path.exists(self.folder)):
             os.mkdir(self.folder)
         self.cache_filename = cache_filename
-        self.data_attr = {}
+        self.data_attr = {} #attribute that stores all data if they were processed already, dict{region: data}
         reg_keys = REGIONS.keys()
         for region in reg_keys:
             self.data_attr[region] = None
 
-    """funkce stáhne do datové složky ​ folder​ všechny soubory s daty z adresy ​ url​ ."""
+    """Finds and downloads all zip files found on specified url"""
     def download_data(self):
         cookies = {
             '_ranaCid': '894571194.1567851474',
@@ -129,9 +131,9 @@ class DataDownloader:
                 for chunk in response.iter_content():
                     fd.write(chunk)
         
-    """pokud nejsou data pro daný kraj stažená, stáhne je do datové složky ​ folder​ . Poté
-    je pro daný region specifikovaný tříznakovým kódem (viz tabulka níže) ​ vždy
-    vyparsuje do následujícího formátu tuple(list[str], list[np.ndarray])"""
+    """Parses csv file of one region into final data structure: tuple(list[column names], list[numpy arr of values])
+    @param region region abbrevation according to global REGIONS dict
+    @return returns final data structure tuple(list[column names], list[numpy arr of values])"""
     def parse_region_data(self, region):
         #initialize data structures
         names = list()
@@ -176,9 +178,9 @@ class DataDownloader:
         result = (names, data)
         return result
     
-    """Vrací zpracovaná data pro vybrané kraje (regiony). Argument ​ regions ​ specifikuje
-    seznam (list) požadovaných krajů jejich třípísmennými kódy. Pokud seznam není
-    uveden (je použito None), zpracují se všechny kraje včetně Prahy."""
+    """Parses csv files for each region specified in list passed to function and merges data into one data structure
+    @param regions list of regions abbrevations, if None is specified all regions are processed
+    @return return tuple(list[column names], list[numpy arr of values]) containing all regions queried"""
     def get_list(self, regions=None):
         if (regions == None):
             regions = REGIONS.keys()
@@ -194,6 +196,7 @@ class DataDownloader:
         result = (names, data)
         iter_list = None
 
+        #process region by region
         for region in regions:
             #already loaded in attribute
             if (self.data_attr[region] != None):  
@@ -211,11 +214,12 @@ class DataDownloader:
                 fd.close()
                 self.data_attr[region] = iter_list
 
+            #concatenate into final numpy arrays
             i = 0
             for arr in iter_list[1]:
                 data[i] = np.concatenate((data[i], arr))
                 i += 1
-        print("FINISHED!")
+
         return result
 
             
